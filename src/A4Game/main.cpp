@@ -23,6 +23,7 @@
 #include <imgui.h>
 #include <imgui_impl_sdl.h>
 #include <imgui_impl_sdlrenderer.h>
+#include "A4Engine/Matrix3.h"
 
 entt::entity CreateBox(entt::registry& registry);
 entt::entity CreateCamera(entt::registry& registry);
@@ -86,9 +87,21 @@ void PlayerInputSystem(entt::registry& registry)
 
 int main()
 {
+	//Test array with Julin
+	float arr[3][3]{ { 5, 8, 2 }, { 8, 3, 1 }, { 5, 3, 9 } };
+	//float arr[3][3]{ { 1, 0, 0 }, {0, 1,0 }, { 0, 0, 1 } };
+	Matrix3 m(arr);
+	Vector2f vec(3, 7);
+	Vector3 vec3 = m * vec;
+	m.Print();
+	m = m.InvertByDeterminant();
+	m.Print();
+	//float f = Matrix3::Determinant(testMatrix);
+	return 0;
+
 	SDLpp sdl;
 
-	SDLppWindow window("A4Engine", 1280, 720);
+	SDLppWindow window("MeronEngineRendu", 1280, 720);
 	SDLppRenderer renderer(window, "", SDL_RENDERER_PRESENTVSYNC);
 
 	ResourceManager resourceManager(renderer);

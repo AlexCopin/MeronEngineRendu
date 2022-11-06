@@ -3,6 +3,7 @@
 #include <A4Engine/Export.hpp>
 #include <A4Engine/Vector2.hpp>
 #include <vector>
+#include "A4Engine/Matrix3.h"
 
 class A4ENGINE_API Transform
 {

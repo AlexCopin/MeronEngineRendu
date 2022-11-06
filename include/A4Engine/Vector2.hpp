@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ostream>
+#include <iostream>
 
 // Pas de macro d'export pour les templates (leur code n'étant pas compilé dans la dll)
 template<typename T>

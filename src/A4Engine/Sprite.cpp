@@ -2,6 +2,7 @@
 #include <A4Engine/SDLppRenderer.hpp>
 #include <A4Engine/SDLppTexture.hpp>
 #include <A4Engine/Transform.hpp>
+#include "A4Engine/Matrix3.h"
 
 Sprite::Sprite(std::shared_ptr<const SDLppTexture> texture) :
 Sprite(std::move(texture), texture->GetRect())
