@@ -89,15 +89,14 @@ int main()
 {
 	//Test array with Julin
 	float arr[3][3]{ { 5, 8, 2 }, { 8, 3, 1 }, { 5, 3, 9 } };
-	//float arr[3][3]{ { 1, 0, 0 }, {0, 1,0 }, { 0, 0, 1 } };
-	Matrix3 m(arr);
-	Vector2f vec(3, 7);
-	Vector3 vec3 = m * vec;
-	m.Print();
-	m = m.InvertByDeterminant();
-	m.Print();
-	//float f = Matrix3::Determinant(testMatrix);
+	float arr2[3][3]{ { 1, 0, 3 }, {0, 1,3 }, { 0, 0, 1 } };
+	Matrix3 m(arr2);
+	Matrix3 m2 = Matrix3::TRS(Vector2f(3, 3), 90, Vector2f());
+	m *= m2;
+		//float f = Matrix3::Determinant(testMatrix);
+		m.Print();
 	return 0;
+
 
 	SDLpp sdl;
 

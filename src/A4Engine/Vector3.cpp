@@ -95,15 +95,3 @@ Vector3& Vector3::operator/=(float value)
 
 	return *this;
 }
-
-Vector3& Vector3::operator*=(const Vector2f& vec)
-{
-	return *this *= Vector3(vec, 1);
-}
-
-
-std::ostream& operator<<(std::ostream& os, const Vector3& vec)
-{
-	os << "Vector3(" << vec.x << ", " << vec.y << ", " << vec.z << ")" << std::endl;
-	return os;
-}

@@ -2,6 +2,7 @@ add_rules("mode.debug", "mode.release")
 
 add_requires("chipmunk2d", "entt", "fmt", "libsdl", "libsdl_image", "lz4", "nlohmann_json")
 add_requires("imgui", { configs = { sdl2 = true }})
+add_requires("openal-soft", "dr_wav")
 
 set_allowedarchs("windows|x64")
 set_warnings("allextra")
@@ -32,6 +33,13 @@ target("A4Game")
     add_deps("A4Engine")
     add_headerfiles("include/A4Game/*.h", "include/A4Game/*.hpp")
     add_files("src/A4Game/**.cpp")
+    
+target("A4Test")
+    set_kind("binary")
+    add_deps("A4Engine")
+    add_headerfiles("include/A4Test/*.h", "include/A4Test/*.hpp")
+    add_files("src/A4Test/**.cpp")
+    add_packages("openal-soft", "dr_wav")
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io

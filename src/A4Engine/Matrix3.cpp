@@ -1,6 +1,6 @@
 #include "A4Engine/Matrix3.h"
+#include "A4Engine/Vector2.hpp"
 #include <math.h>
-#include <array>
 
 
 Matrix3::Matrix3(const float arr[3][3])
@@ -10,17 +10,10 @@ Matrix3::Matrix3(const float arr[3][3])
 			matrix[i][j] = arr[i][j];
 }
 
-Matrix3::Matrix3(Vector2f pos, Vector2f rot, Vector2f sca)
+Matrix3::Matrix3(const Vector2f& pos, float rotation, const Vector2f& sca)
 {
-	matrix[0][0] = pos.x;
-	matrix[1][0] = pos.y;
-	matrix[2][0] = 0;
-	matrix[0][1] = rot.x;
-	matrix[1][1] = rot.y;
-	matrix[2][1] = 0;
-	matrix[0][2] = sca.x;
-	matrix[1][2] = sca.y;
-	matrix[2][2] = 1;
+	Matrix3 m = (MatrixTranslation(pos) * MatrixRotation(rotation) * MatrixScale(sca)  );
+	*this = std::move(m);
 }
 
 Matrix3 Matrix3::Multiply(Matrix3 m, float f)
@@ -42,7 +35,7 @@ Matrix3 Matrix3::Multiply(float f)
 	return Multiply(*this, f);
 }
 
-const std::array<std::array<float, 2>, 2>& Matrix3::SubMatrix(Matrix3 m, int row, int column)
+std::array<std::array<float, 2>, 2> Matrix3::SubMatrix(Matrix3 m, int row, int column)
 {
 	return m.SubMatrix(row, column);
 }
@@ -95,7 +88,7 @@ float Matrix3::Determinant(Matrix3& m)
 	return det;
 }
 
-float Matrix3::Determinant(const std::array<std::array<float, 2>, 2>& mat)
+float Matrix3::Determinant(const std::array<std::array<float, 2>, 2>& mat) const
 {
 	float result = mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
 	return result;
@@ -140,7 +133,7 @@ Matrix3 Matrix3::Adjugate()
 	return Adjugate(*this);
 }
 
-Matrix3 Matrix3::InvertByDeterminant(Matrix3 m)
+Matrix3 Matrix3::Invert(Matrix3 m)
 {
 	Matrix3 newMatrix = Matrix3();
 	float det = Determinant(m);
@@ -149,9 +142,97 @@ Matrix3 Matrix3::InvertByDeterminant(Matrix3 m)
 	newMatrix = Multiply(newMatrix, 1 / det);
 	return newMatrix;
 }
-Matrix3 Matrix3::InvertByDeterminant()
+Matrix3 Matrix3::Invert()
 {
-	return InvertByDeterminant(*this);
+	return Invert(*this);
+}
+
+Matrix3 Matrix3::CofactorMatrix() const
+{
+	Matrix3 result(matrix);
+
+	for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 3; j++)
+			result.matrix[i][j] = Cofactor(i, j);
+
+	return result;
+}
+
+float Matrix3::Cofactor(int row, int col) const
+{
+	auto minor = 0.f;
+	minor = GetMinor(row, col);
+	return (row + col) % 2 == 0 ? minor : -minor;
+}
+
+float Matrix3::GetMinor(int row, int col) const
+{
+	return Determinant(SubMatrix(matrix, row, col));
+}
+
+
+Matrix3 Matrix3::MatrixTranslation(const Vector2f& translation)
+{
+	float arr[3][3]{
+	  { 1, 0, translation.x },
+	  { 0, 1, translation.y },
+	  { 0, 0, 1 } };
+	return Matrix3(arr);
+}
+
+void Matrix3::Translate(const Vector2f& translation)
+{
+	*this *= MatrixTranslation(translation);
+}
+
+Matrix3 Matrix3::MatrixScale(const Vector2f& scale)
+{
+	float arr[3][3]{
+	  { scale.x, 0, 0 },
+	  { 0, scale.y, 0 },
+	  { 0, 0, 1 } };
+	return Matrix3(arr);
+}
+
+void Matrix3::Scale(const Vector2f& scale)
+{
+	*this *= MatrixScale(scale);
+}
+
+Matrix3 Matrix3::MatrixScale(float scale)
+{
+	float arr[3][3]{
+	  { scale, 0, 0 },
+	  { 0, scale, 0 },
+	  { 0, 0, 1 } };
+	return Matrix3(arr);
+}
+
+void Matrix3::Scale(float scale)
+{
+	*this *= MatrixScale(scale);
+}
+
+Matrix3 Matrix3::MatrixRotation(float rotation)
+{
+	auto a = rotation * Deg2Rad;
+	auto cos = std::cos(a);
+	auto sin = std::sin(a);
+	float arr[3][3]{
+	  { cos, (-sin), 0 },
+	  { sin, cos, 0 },
+	  { 0, 0, 1 }};
+	return Matrix3(arr);
+}
+
+void Matrix3::Rotate(float rotation)
+{
+	*this *= MatrixRotation(rotation);
+}
+
+Matrix3 Matrix3::TRS(const Vector2f& translation, float rotation, Vector2f scale)
+{
+	return MatrixTranslation(translation) * MatrixRotation(rotation) * MatrixScale(scale);
 }
 
 Matrix3 Matrix3::Identity()
@@ -176,23 +257,31 @@ Matrix3 Matrix3::operator*(const Matrix3& m2)
 	return *this *= m2;
 }
 
-Vector3 Matrix3::operator*=(const Vector2f& vec)
-{
-	float arr[3];
-	float tempArr[3]{ vec.x, vec.y, 1};
+//Vector2f Matrix3::operator*=(const Vector2f& vec) const
+//{
+//	float arr[3];
+//	float tempArr[3]{ vec.x, vec.y, 1};
+//
+//	for (int i = 0; i < 3; i++)
+//		arr[i] = 0;
+//
+//	for(int i = 0; i < 3; ++i)
+//	{
+//		float sum = 0;
+//		for(int j = 0; j < 3; ++j)
+//		{
+//			sum += matrix[i][j] * tempArr[j];
+//		}
+//		arr[i] = sum;
+//	}
+//	Vector2f returnVec(arr[0], arr[1]);
+//	return returnVec;
+//}
+//Vector2f Matrix3::operator*(const Vector2f& vec) const
+//{
+//	return *this *= vec;
+//}
 
-	for(int i = 0; i < 3; ++i)
-	{
-		float sum = 0;
-		for(int j = 0; j < 3; ++j)
-		{
-			sum += matrix[i][j] * tempArr[j];
-		}
-		arr[i] = sum;
-	}
-	Vector3 returnVec(arr[0], arr[1], arr[2]);
-	return returnVec;
-}
 void Matrix3::Print()
 {
 	std::cout << "Matrix3(" << std::endl
@@ -200,11 +289,6 @@ void Matrix3::Print()
 		<< "{" << matrix[1][0] << ", " << matrix[1][1] << ", " << matrix[1][2] << "}" << std::endl
 		<< "{" << matrix[2][0] << ", " << matrix[2][1] << ", " << matrix[2][2] << "}" << ")" << std::endl;
 }
-Vector3 Matrix3::operator*(const Vector2f& vec)
-{
-	return *this *= vec;
-}
-
 
 std::ostream& operator<<(std::ostream& os, const Matrix3& mat)
 {
