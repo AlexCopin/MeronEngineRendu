@@ -28,7 +28,9 @@ public:
 	static Matrix3 Invert(Matrix3 m);
 	Matrix3 Invert();
 
+	static Matrix3 CofactorMatrix(Matrix3 m);
 	Matrix3 CofactorMatrix() const;
+
 	float Cofactor(int row, int col) const;
 	float GetMinor(int row, int col) const;
 
@@ -51,12 +53,14 @@ public:
 
 	static Matrix3 TRS(const Vector2f& translation, float rotation, Vector2f scale);
 
+	static Matrix3 SRT(const Vector2f& translation, float rotation, Vector2f scale);
+
 	static Matrix3 Identity();
 
 	Matrix3 operator*=(const Matrix3& m2);
 	Matrix3 operator*(const Matrix3& m2);
-	/*Vector2f operator*(const Vector2f& vec) const;
-	Vector2f operator*=(const Vector2f& vec) const;*/
+	Vector2f operator*(const Vector2f& vec) const;
+	Vector2f operator*=(const Vector2f& vec) const;
 
 
 	void Print();

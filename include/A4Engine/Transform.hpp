@@ -36,6 +36,8 @@ class A4ENGINE_API Transform
 		Vector2f TransformPoint(Vector2f position) const;
 		Vector2f TransformInversePoint(Vector2f position) const;
 
+		Matrix3 TransformToMatrix() const;
+
 		Transform& operator=(const Transform&);
 		Transform& operator=(Transform&&) noexcept;
 
@@ -46,7 +48,6 @@ class A4ENGINE_API Transform
 		std::vector<Transform*> m_children;
 		Transform* m_parent;
 
-		Matrix3 m_matrix;
 		Vector2f m_position;
 		float m_rotation;
 		Vector2f m_scale;

@@ -18,7 +18,7 @@ m_height(rect.h)
 {
 }
 
-void Sprite::Draw(SDLppRenderer& renderer, const Transform& cameraTransform, const Transform& transform)
+void Sprite::Draw(SDLppRenderer& renderer, const Matrix3& transformMatrix /*const Transform& cameraTransform, const Transform& transform*/)
 {
 	SDL_Rect texRect = m_texture->GetRect();
 
@@ -26,7 +26,7 @@ void Sprite::Draw(SDLppRenderer& renderer, const Transform& cameraTransform, con
 
 	// Calcul de la position des quatre coins du sprite dans le repère du Transform
 	// c'est à cette étape que la translation, rotation et scale du Transform vont s'appliquer
-	Vector2f topLeftCorner = transform.TransformPoint(Vector2f(0.f, 0.f) - originPos);
+	/*Vector2f topLeftCorner = transform.TransformPoint(Vector2f(0.f, 0.f) - originPos);
 	Vector2f topRightCorner = transform.TransformPoint(Vector2f(static_cast<float>(m_width), 0.f) - originPos);
 	Vector2f bottomLeftCorner = transform.TransformPoint(Vector2f(0.f, static_cast<float>(m_height)) - originPos);
 	Vector2f bottomRightCorner = transform.TransformPoint(Vector2f(static_cast<float>(m_width), static_cast<float>(m_height)) - originPos);
@@ -36,6 +36,12 @@ void Sprite::Draw(SDLppRenderer& renderer, const Transform& cameraTransform, con
 	topRightCorner = cameraTransform.TransformInversePoint(topRightCorner);
 	bottomLeftCorner = cameraTransform.TransformInversePoint(bottomLeftCorner);
 	bottomRightCorner = cameraTransform.TransformInversePoint(bottomRightCorner);
+	*/
+	Vector2f topLeftCorner = transformMatrix * (Vector2f(0.f, 0.f) - originPos);
+	Vector2f topRightCorner = transformMatrix * (Vector2f(static_cast<float>(m_width), 0.f) - originPos);
+	Vector2f bottomLeftCorner = transformMatrix * (Vector2f(0.f, static_cast<float>(m_height)) - originPos);
+	Vector2f bottomRightCorner = transformMatrix * (Vector2f(static_cast<float>(m_width), static_cast<float>(m_height)) - originPos);
+
 
 	// La division étant généralement plus coûteuse que la multiplication, quand on sait qu'on va faire plusieurs divisons par
 	// les mêmes valeurs on peut calculer l'inverse de la valeur pour la multiplier par la suite (X * (1 / Y) == X / Y)

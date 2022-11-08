@@ -170,6 +170,11 @@ Vector2f Transform::TransformInversePoint(Vector2f position) const
 	return position;
 }
 
+Matrix3 Transform::TransformToMatrix() const
+{
+	return Matrix3(m_position, m_rotation, m_scale);
+}
+
 Transform& Transform::operator=(const Transform& transform)
 {
 	m_position = transform.m_position;

@@ -13,6 +13,7 @@
 class SDLppRenderer;
 class SDLppTexture;
 class Transform;
+class Matrix3;
 
 struct ModelVertex
 {
@@ -30,7 +31,8 @@ class A4ENGINE_API Model : public Renderable // Un ensemble de triangles
 		Model(Model&&) = default;
 		~Model() = default;
 
-		void Draw(SDLppRenderer& renderer, const Transform& cameraTransform, const Transform& transform) override;
+		//void Draw(SDLppRenderer& renderer, const Transform& cameraTransform, const Transform& transform) override;
+		void Draw(SDLppRenderer& renderer, const Matrix3& transformMatrix) override;
 
 		bool IsValid() const;
 

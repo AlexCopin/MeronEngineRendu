@@ -5,6 +5,7 @@
 class SDLppRenderer;
 class SDLppTexture;
 class Transform;
+class Matrix3;
 
 class A4ENGINE_API Renderable // interface
 {
@@ -12,5 +13,6 @@ class A4ENGINE_API Renderable // interface
 		// Il est important pour une classe virtuelle de base d'avoir un destructeur virtuel
 		virtual ~Renderable() = default;
 
-		virtual void Draw(SDLppRenderer& renderer, const Transform& cameraTransform, const Transform& transform) = 0;
+		virtual void Draw(SDLppRenderer& renderer, const Matrix3& transformMatrix) = 0;
+		//virtual void Draw(SDLppRenderer& renderer, const Transform& cameraTransform, const Transform& transform) = 0;
 };

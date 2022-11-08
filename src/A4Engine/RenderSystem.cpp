@@ -39,7 +39,9 @@ void RenderSystem::Update(float /*deltaTime*/)
 	{
 		Transform& entityTransform = view.get<Transform>(entity);
 		GraphicsComponent& entityGraphics = view.get<GraphicsComponent>(entity);
-
-		entityGraphics.renderable->Draw(m_renderer, *cameraTransform, entityTransform);
+		Matrix3 cameraMatrix = Matrix3::SRT(cameraTransform->GetPosition(), cameraTransform->GetRotation(), cameraTransform->GetScale()).Invert();
+		Matrix3 entityMatrix = Matrix3::TRS(entityTransform.GetPosition(), entityTransform.GetRotation(), entityTransform.GetScale());
+		Matrix3 matrixTransform = cameraMatrix * entityMatrix;
+		entityGraphics.renderable->Draw(m_renderer, matrixTransform);
 	}
 }

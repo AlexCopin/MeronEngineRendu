@@ -12,7 +12,7 @@ Matrix3::Matrix3(const float arr[3][3])
 
 Matrix3::Matrix3(const Vector2f& pos, float rotation, const Vector2f& sca)
 {
-	Matrix3 m = (MatrixTranslation(pos) * MatrixRotation(rotation) * MatrixScale(sca)  );
+	Matrix3 m = TRS(pos, rotation, sca);
 	*this = std::move(m);
 }
 
@@ -111,21 +111,21 @@ Matrix3 Matrix3::Transpose()
 //Static
 Matrix3 Matrix3::Adjugate(Matrix3 m)
 {
-	Matrix3 newMatrix;
-	Matrix3 matrixTransposed = m;
+	//Separated in functions (seen with Dougidoug)
+	/*Matrix3 newMatrix;
 	int power = 0;
 	for (int i = 0; i < 3; i++)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			newMatrix.matrix[i][j] = pow(-1, power) * m.Determinant(SubMatrix(matrixTransposed, i, j));
+			newMatrix.matrix[i][j] = pow(-1, power) * m.Determinant(SubMatrix(m, i, j));
 			power++;
 		}
 
 		power = (i % 2 != 0) ? 0 : 1;
 	}
-	matrixTransposed = Transpose(matrixTransposed);
-	return newMatrix;
+	newMatrix = Transpose(m);*/
+	return CofactorMatrix(m).Transpose();
 }
 
 Matrix3 Matrix3::Adjugate()
@@ -139,12 +139,16 @@ Matrix3 Matrix3::Invert(Matrix3 m)
 	float det = Determinant(m);
 	if (det == 0) return newMatrix;
 	newMatrix = m.Adjugate();
-	newMatrix = Multiply(newMatrix, 1 / det);
-	return newMatrix;
+	return  Multiply(newMatrix, 1 / det);
 }
 Matrix3 Matrix3::Invert()
 {
 	return Invert(*this);
+}
+
+Matrix3 Matrix3::CofactorMatrix(Matrix3 m)
+{
+	return m.CofactorMatrix();
 }
 
 Matrix3 Matrix3::CofactorMatrix() const
@@ -174,9 +178,9 @@ float Matrix3::GetMinor(int row, int col) const
 Matrix3 Matrix3::MatrixTranslation(const Vector2f& translation)
 {
 	float arr[3][3]{
-	  { 1, 0, translation.x },
+	  { 1, 0, translation.x},
 	  { 0, 1, translation.y },
-	  { 0, 0, 1 } };
+	  { 0 , 0, 1 } };
 	return Matrix3(arr);
 }
 
@@ -235,6 +239,11 @@ Matrix3 Matrix3::TRS(const Vector2f& translation, float rotation, Vector2f scale
 	return MatrixTranslation(translation) * MatrixRotation(rotation) * MatrixScale(scale);
 }
 
+Matrix3 Matrix3::SRT(const Vector2f& translation, float rotation, Vector2f scale)
+{
+	return  MatrixScale(scale) * MatrixRotation(rotation) * MatrixTranslation(translation);
+}
+
 Matrix3 Matrix3::Identity()
 {
 	Matrix3 matrix;
@@ -248,7 +257,14 @@ Matrix3 Matrix3::operator*=(const Matrix3& m2)
 	Matrix3 returnMatrix = Matrix3();
 	for (int i = 0; i < 3; ++i)
 		for(int j = 0; j < 3; ++j)
-			returnMatrix.matrix[i][j] = matrix[i][j] * m2.matrix[i][j];
+		{
+			float somme = 0;
+			for (int k = 0; k < 3; k++)
+			{
+				somme += matrix[i][k] * m2.matrix[k][j];
+			}
+			returnMatrix.matrix[i][j] = somme;
+		}
 
 	return returnMatrix;
 }
@@ -257,30 +273,22 @@ Matrix3 Matrix3::operator*(const Matrix3& m2)
 	return *this *= m2;
 }
 
-//Vector2f Matrix3::operator*=(const Vector2f& vec) const
-//{
-//	float arr[3];
-//	float tempArr[3]{ vec.x, vec.y, 1};
-//
-//	for (int i = 0; i < 3; i++)
-//		arr[i] = 0;
-//
-//	for(int i = 0; i < 3; ++i)
-//	{
-//		float sum = 0;
-//		for(int j = 0; j < 3; ++j)
-//		{
-//			sum += matrix[i][j] * tempArr[j];
-//		}
-//		arr[i] = sum;
-//	}
-//	Vector2f returnVec(arr[0], arr[1]);
-//	return returnVec;
-//}
-//Vector2f Matrix3::operator*(const Vector2f& vec) const
-//{
-//	return *this *= vec;
-//}
+Vector2f Matrix3::operator*=(const Vector2f& vec) const
+{
+	float arr[3]{};
+	float tempArr[3]{ vec.x, vec.y, 1};
+
+
+	for(int i = 0; i < 3; ++i)
+		for(int j = 0; j < 3; ++j)
+			arr[i] += matrix[i][j] * tempArr[j];
+
+	return Vector2f(arr[0], arr[1]);
+}
+Vector2f Matrix3::operator*(const Vector2f& vec) const
+{
+	return *this *= vec;
+}
 
 void Matrix3::Print()
 {

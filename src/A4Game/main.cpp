@@ -91,12 +91,13 @@ int main()
 	float arr[3][3]{ { 5, 8, 2 }, { 8, 3, 1 }, { 5, 3, 9 } };
 	float arr2[3][3]{ { 1, 0, 3 }, {0, 1,3 }, { 0, 0, 1 } };
 	Matrix3 m(arr2);
-	Matrix3 m2 = Matrix3::TRS(Vector2f(3, 3), 90, Vector2f());
+	Matrix3 m2 = Matrix3::TRS(Vector2f(3, 3), 90, Vector2f(2,2));
 	m *= m2;
-		//float f = Matrix3::Determinant(testMatrix);
-		m.Print();
-	return 0;
+	//float f = Matrix3::Determinant(testMatrix);
+	m2.Print();
 
+	Vector2f positionTest(5.f, 5.f);
+	positionTest = m2 * positionTest;
 
 	SDLpp sdl;
 
@@ -287,11 +288,16 @@ void EntityInspector(const char* windowName, entt::registry& registry, entt::ent
 
 	ImGui::LabelText("Position", "X: %f\nY: %f", pos.x, pos.y);
 
-	if (ImGui::SliderFloat("Rotation", &rotation, -180.f, 180.f))
+	float positionVal[2] = { pos.x, pos.y };
+	
+	if (ImGui::SliderFloat2("Position", positionVal, -5000, 5000))
+		transform.SetPosition({ positionVal[0], positionVal[1] });
+
+	if (ImGui::InputFloat("Rotation", &rotation, 1))
 		transform.SetRotation(rotation);
 
 	float scaleVal[2] = { scale.x, scale.y };
-	if (ImGui::SliderFloat2("Scale", scaleVal, -5.f, 5.f))
+	if (ImGui::InputFloat2("Scale", scaleVal))
 		transform.SetScale({ scaleVal[0], scaleVal[1] });
 
 	if (ImGui::Button("Reset"))
