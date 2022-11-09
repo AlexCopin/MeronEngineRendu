@@ -51,9 +51,9 @@ public:
 	static Matrix3 MatrixRotation(float rotation);
 	void Rotate(float rotation);
 
-	static Matrix3 TRS(const Vector2f& translation, float rotation, Vector2f scale);
+	static Matrix3 TRS(const Vector2f& translation, float rotation, const Vector2f& scale);
 
-	static Matrix3 SRT(const Vector2f& translation, float rotation, Vector2f scale);
+	static Matrix3 SRT(const Vector2f& translation, float rotation, const Vector2f& scale);
 
 	static Matrix3 Identity();
 

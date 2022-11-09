@@ -234,12 +234,12 @@ void Matrix3::Rotate(float rotation)
 	*this *= MatrixRotation(rotation);
 }
 
-Matrix3 Matrix3::TRS(const Vector2f& translation, float rotation, Vector2f scale)
+Matrix3 Matrix3::TRS(const Vector2f& translation, float rotation, const Vector2f& scale)
 {
 	return MatrixTranslation(translation) * MatrixRotation(rotation) * MatrixScale(scale);
 }
 
-Matrix3 Matrix3::SRT(const Vector2f& translation, float rotation, Vector2f scale)
+Matrix3 Matrix3::SRT(const Vector2f& translation, float rotation, const Vector2f& scale)
 {
 	return  MatrixScale(scale) * MatrixRotation(rotation) * MatrixTranslation(translation);
 }

@@ -52,12 +52,7 @@ void Model::Draw(SDLppRenderer& renderer, const Matrix3& transformMatrix /*const
 	{
 		const ModelVertex& modelVertex = m_vertices[i];
 		SDL_Vertex& sdlVertex = m_sdlVertices[i];
-		/*
-		// tex_coord et color sont déjà gérés par le constructeur
-		Vector2f transformedPos = transform.TransformPoint(modelVertex.pos);
-		transformedPos = cameraTransform.TransformInversePoint(transformedPos);
-		
-		*/
+
 		Vector2f transformedPos = transformMatrix *  modelVertex.pos;
 		sdlVertex.position = SDL_FPoint{ transformedPos.x, transformedPos.y };
 	}

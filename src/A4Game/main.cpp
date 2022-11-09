@@ -18,6 +18,10 @@
 #include <A4Engine/VelocityComponent.hpp>
 #include <A4Engine/VelocitySystem.hpp>
 #include <chipmunk/chipmunk.h>
+#include <A4Engine/PhysicsSystem.h>
+#include <A4Engine/RigidBodyComponent.h>
+#include <A4Engine/BoxShape.hpp>
+#include <A4Engine/Shape.h>
 #include <entt/entt.hpp>
 #include <fmt/core.h>
 #include <imgui.h>
@@ -44,19 +48,13 @@ struct InputComponent
 
 struct PlayerControlled {};
 
-struct PhysicsComponent
-{
-	cpBody* body;
-	cpShape* shape;
-};
-
 void PlayerControllerSystem(entt::registry& registry)
 {
-	auto view = registry.view<PhysicsComponent, InputComponent>();
+	auto view = registry.view<RigidBodyComponent, InputComponent>();
 	for (entt::entity entity : view)
 	{
 		auto& entityInput = view.get<InputComponent>(entity);
-		auto& entityPhysics = view.get<PhysicsComponent>(entity);
+		auto& entityPhysics = view.get<RigidBodyComponent>(entity);
 
 		Vector2f velocity = Vector2f(0.f, 0.f);
 		if (entityInput.left)
@@ -66,10 +64,10 @@ void PlayerControllerSystem(entt::registry& registry)
 			velocity.x += 500.f;
 
 		if (entityInput.jump)
-			cpBodyApplyImpulseAtWorldPoint(entityPhysics.body, cpv(0.f, -1000.f), cpBodyGetPosition(entityPhysics.body));
+			cpBodyApplyImpulseAtWorldPoint(entityPhysics.GetBody(), cpv(0.f, -1000.f), cpBodyGetPosition(entityPhysics.GetBody()));
 
-		float velY = cpBodyGetVelocity(entityPhysics.body).y;
-		cpBodySetVelocity(entityPhysics.body, cpv(velocity.x, velY));
+		float velY = cpBodyGetVelocity(entityPhysics.GetBody()).y;
+		cpBodySetVelocity(entityPhysics.GetBody(), cpv(velocity.x, velY));
 	}
 }
 
@@ -87,18 +85,6 @@ void PlayerInputSystem(entt::registry& registry)
 
 int main()
 {
-	//Test array with Julin
-	float arr[3][3]{ { 5, 8, 2 }, { 8, 3, 1 }, { 5, 3, 9 } };
-	float arr2[3][3]{ { 1, 0, 3 }, {0, 1,3 }, { 0, 0, 1 } };
-	Matrix3 m(arr2);
-	Matrix3 m2 = Matrix3::TRS(Vector2f(3, 3), 90, Vector2f(2,2));
-	m *= m2;
-	//float f = Matrix3::Determinant(testMatrix);
-	m2.Print();
-
-	Vector2f positionTest(5.f, 5.f);
-	positionTest = m2 * positionTest;
-
 	SDLpp sdl;
 
 	SDLppWindow window("MeronEngineRendu", 1280, 720);
@@ -146,7 +132,6 @@ int main()
 	entt::entity runner = CreateRunner(registry, spriteSheet);
 	registry.get<Transform>(runner).SetPosition({ 300.f, 250.f });
 
-	entt::entity box = CreateBox(registry);
 
 	Uint64 lastUpdate = SDL_GetPerformanceCounter();
 
@@ -160,41 +145,28 @@ int main()
 			registry.get<SpritesheetComponent>(runner).PlayAnimation("idle");
 	});
 
-	cpSpace* space = cpSpaceNew();
-	cpSpaceSetGravity(space, { 0.f, 981.f });
-	cpSpaceSetDamping(space, 0.5f);
+	//Create PhysicsSystem
+	PhysicsSystem physicsSystem = PhysicsSystem(registry);
 
-	cpBody* boxBody = cpBodyNew(100.f, cpMomentForBox(100.f, 256, 256));
-	cpSpaceAddBody(space, boxBody);
-	cpBodySetPosition(boxBody, cpv(400.f, 400.f));
-	cpBodySetAngle(boxBody, 15.f * Rad2Deg);
+	//Create Shape for runner
+	std::shared_ptr<Shape> shapeRunner = std::make_shared<BoxShape>(128.f, 256.f);
+	registry.get<RigidBodyComponent>(runner).AddShape(physicsSystem.GetSpace(), shapeRunner.get());
+	registry.get<RigidBodyComponent>(runner).SetPosition({ 100,100 });
 
-	cpShape* boxShape = cpBoxShapeNew(boxBody, 256, 256, 0.f);
-	cpShapeGetCenterOfGravity(boxShape);
-	cpSpaceAddShape(space, boxShape);
-
+	//Create shape for box
+	entt::entity box = CreateBox(registry);
+	std::shared_ptr<Shape> shapeBox = std::make_shared<BoxShape>(256.f, 256.f);
+	registry.get<RigidBodyComponent>(box).AddShape(physicsSystem.GetSpace(), shapeBox.get());
+	registry.get<RigidBodyComponent>(box).SetPosition({ 400,400 });
+	
+	//Floor (not an entity -> Physique pas gérée par PhysicsSystem
 	cpBody* floorBody = cpBodyNewStatic();
 
 	cpShape* floorShape = cpSegmentShapeNew(floorBody, cpv(0.f, 720.f), cpv(10'000.f, 720.f), 0.f);
-	cpSpaceAddShape(space, floorShape);
+	cpSpaceAddShape(physicsSystem.GetSpace(), floorShape);
 
-	cpBody* playerBody = cpBodyNew(80.f, std::numeric_limits<float>::infinity());
-	cpShape* playerShape = cpBoxShapeNew(playerBody, 128.f, 256.f, 0.f);
-
-	auto& playerPhysics = registry.get<PhysicsComponent>(runner);
-	playerPhysics.body = playerBody;
-	cpSpaceAddBody(space, playerPhysics.body);
-
-	playerPhysics.shape = playerShape;
-	cpSpaceAddShape(space, playerPhysics.shape);
 
 	InputManager::Instance().BindKeyPressed(SDLK_SPACE, "Jump");
-
-	// Rajoutez un InputComponent (contenant des booléens représentant les contrôles, left/right/jump)
-	// Rajoutez un VelocityComponent sur l'entité runner
-	// Rajoutez une fonction (system), qui modifie la vélocité en fonction de l'input
-
-	// Pas de physique pour l'instant
 
 	float physicsTimestep = 1.f / 50.f;
 	float physicsAccumulator = 0.f;
@@ -225,34 +197,18 @@ int main()
 		renderer.Clear();
 
 		HandleCameraMovement(registry, cameraEntity, deltaTime);
-		//HandleRunnerMovement(registry, runner, deltaTime);
-
-		// Objectif : faire en sorte que la physique tourne à pas fixe (fixed delta time)
 
 		physicsAccumulator += deltaTime;
 		while (physicsAccumulator >= physicsTimestep)
 		{
-			cpSpaceStep(space, physicsTimestep);
+			cpSpaceStep(physicsSystem.GetSpace(), physicsTimestep);
 			physicsAccumulator -= physicsTimestep;
 		}
-
-		// Box
-		cpVect position = cpBodyGetPosition(boxBody);
-		float rotation = cpBodyGetAngle(boxBody) * Rad2Deg;
-
-		registry.get<Transform>(box).SetPosition(Vector2f(position.x, position.y));
-		registry.get<Transform>(box).SetRotation(rotation);
-
-		// Player
-		cpVect playerPos = cpBodyGetPosition(playerBody);
-		float playerRot = cpBodyGetAngle(playerBody) * Rad2Deg;
-
-		registry.get<Transform>(runner).SetPosition(Vector2f(playerPos.x, playerPos.y));
-		registry.get<Transform>(box).SetRotation(playerRot);
 
 		animSystem.Update(deltaTime);
 		velocitySystem.Update(deltaTime);
 		renderSystem.Update(deltaTime);
+		physicsSystem.FixedUpdate(deltaTime);
 		PlayerInputSystem(registry);
 		PlayerControllerSystem(registry);
 
@@ -264,14 +220,6 @@ int main()
 
 		renderer.Present();
 	}
-
-	cpSpaceRemoveShape(space, boxShape);
-	cpShapeFree(boxShape);
-
-	cpSpaceRemoveBody(space, boxBody);
-	cpBodyFree(boxBody);
-
-	cpSpaceFree(space);
 
 	return 0;
 }
@@ -318,6 +266,7 @@ entt::entity CreateBox(entt::registry& registry)
 	entt::entity entity = registry.create();
 	registry.emplace<GraphicsComponent>(entity, std::move(box));
 	registry.emplace<Transform>(entity);
+	registry.emplace<RigidBodyComponent>(entity, 300.f);
 
 	return entity;
 }
@@ -354,7 +303,7 @@ entt::entity CreateRunner(entt::registry& registry, std::shared_ptr<Spritesheet>
 	registry.emplace<GraphicsComponent>(entity, std::move(sprite));
 	registry.emplace<Transform>(entity);
 	registry.emplace<InputComponent>(entity);
-	registry.emplace<PhysicsComponent>(entity);
+	registry.emplace<RigidBodyComponent>(entity, 80.f);
 	registry.emplace<PlayerControlled>(entity);
 
 	return entity;
