@@ -25,7 +25,7 @@ target("A4Engine")
     add_headerfiles("include/A4Engine/*.h", "include/A4Engine/*.hpp", "include/A4Engine/*.inl")
     add_includedirs("include", { public = true })
     add_files("src/A4Engine/**.cpp")
-    add_packages("libsdl", "libsdl_image", "nlohmann_json", "fmt", "entt", "imgui", "chipmunk2d", { public = true })
+    add_packages("libsdl", "libsdl_image", "nlohmann_json", "fmt", "entt", "imgui", "chipmunk2d", "openal-soft", "dr_wav", { public = true })
     add_packages("lz4")
 
 target("A4Game")
@@ -39,7 +39,6 @@ target("A4Test")
     add_deps("A4Engine")
     add_headerfiles("include/A4Test/*.h", "include/A4Test/*.hpp")
     add_files("src/A4Test/**.cpp")
-    add_packages("openal-soft", "dr_wav")
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io

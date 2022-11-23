@@ -2,6 +2,7 @@
 #include <A4Engine/Model.hpp>
 #include <A4Engine/SDLppSurface.hpp>
 #include <A4Engine/SDLppTexture.hpp>
+#include <A4Engine/Sound.hpp>
 #include <stdexcept>
 
 ResourceManager::ResourceManager(SDLppRenderer& renderer) :
@@ -90,6 +91,29 @@ const std::shared_ptr<SDLppTexture>& ResourceManager::GetTexture(const std::stri
 	return it->second;
 }
 
+const std::shared_ptr<Sound>& ResourceManager::GetSound(const char* soundPath)
+{
+	auto it = m_sounds.find(soundPath);
+	if (it != m_sounds.end())
+		return it->second;
+
+
+	// Non, essayons de la charger
+	Sound sound = Sound::LoadFromFile(soundPath);
+	if (!sound.IsValid())
+	{
+		if(!m_missingSound)
+		{
+			Sound soundTemp = Sound::LoadFromFile("assets/Error.wav");
+			m_missingSound = std::make_shared<Sound>(std::move(soundTemp));
+		}
+		m_sounds.emplace(soundPath, m_missingSound);
+		return m_missingSound;
+	}
+	it = m_sounds.emplace(soundPath, std::make_shared<Sound>(std::move(sound))).first;
+	return it->second;
+}
+
 void ResourceManager::Purge()
 {
 	// On va itérer sur le conteneur tout en enlevant certains éléments pendant l'itération, cela demande un peu de pratique
@@ -115,6 +139,15 @@ void ResourceManager::Purge()
 			++it;
 		else
 			it = m_models.erase(it);
+	}
+
+	// On sounds
+	for (auto it = m_sounds.begin(); it != m_sounds.end(); )
+	{
+		if (it->second.use_count() > 1)
+			++it;
+		else
+			it = m_sounds.erase(it);
 	}
 
 }
