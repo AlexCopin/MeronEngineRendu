@@ -7,7 +7,7 @@
 #include "A4Engine/Sound.hpp"
 #include <iostream>
 #include <A4Engine/ResourceManager.hpp>
-#include "SoundSystem.h"
+#include "A4Engine/SoundSystem.h"
 #include <vector>
 
 int main()
