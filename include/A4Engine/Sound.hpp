@@ -19,11 +19,6 @@ public:
 	static Sound LoadFromFile(const char* soundPath);
 
 	void Play();
-	/*
-	ALuint GetBuffer();
-	drwav* GetWav();
-	std::vector<std::int16_t>& GetSamples();
-	*/
 
 	Sound& operator=(const Sound&) = delete;
 	Sound& operator=(Sound&&) = default;
@@ -35,8 +30,8 @@ private:
 
 	bool invalid;
 
-	drwav m_wav;
 	ALuint m_buffer;
 	ALuint m_source;
+
 	std::vector<std::int16_t> m_samples;
 };
