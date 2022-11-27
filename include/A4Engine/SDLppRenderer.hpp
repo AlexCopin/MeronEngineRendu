@@ -21,6 +21,8 @@ class A4ENGINE_API SDLppRenderer
 		void RenderCopy(const SDLppTexture& texture);
 		void RenderCopy(const SDLppTexture& texture, const SDL_Rect& dst);
 		void RenderCopy(const SDLppTexture& texture, const SDL_Rect& src, const SDL_Rect& dst);
+
+		void DrawLines(const SDL_FPoint* points, std::size_t count);
 		void SetDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
 
 		SDLppRenderer& operator=(const SDLppRenderer&) = delete; // opérateur d'assignation par copie

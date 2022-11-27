@@ -9,21 +9,9 @@
 #include <A4Engine/Transform.hpp>
 #include <A4Engine/Sound.hpp>
 #include "A4Engine/SoundSystem.h"
-
-
-
-//void PlayerInputSystem(entt::registry& registry)
-//{
-//	auto view = registry.view<PlayerControlled, InputComponent>();
-//	for (entt::entity entity : view)
-//	{
-//		auto& entityInput = view.get<InputComponent>(entity);
-//		entityInput.left = InputManager::Instance().IsActive("MoveLeft");
-//		entityInput.right = InputManager::Instance().IsActive("MoveRight");
-//		entityInput.jump = InputManager::Instance().IsActive("Jump");
-//	}
-//}
-
+#include <A4Engine/PhysicsSystem.h>
+#include <A4Engine/BoxShape.hpp>
+#include <A4Game/Game.h>
 
 
 Player::Player(entt::registry& regist, std::shared_ptr<Spritesheet> spritesheet) :
@@ -48,10 +36,16 @@ entt::entity Player::CreatePlayer(std::shared_ptr<Spritesheet> spritesheet)
 	registry.emplace<SpritesheetComponent>(player, spritesheet, sprite);
 	registry.emplace<GraphicsComponent>(player, std::move(sprite));
 	registry.emplace<Transform>(player);
-	registry.emplace<RigidBodyComponent>(player, 10.f);
+	registry.emplace<RigidBodyComponent>(player, 30.f);
+
+
+	//Create Shape for BIRD
+	std::shared_ptr<Shape> shapeBird = std::make_shared<BoxShape>(128, 128);
+	registry.get<RigidBodyComponent>(player).AddShape(PhysicsSystem::Instance().GetSpace(), shapeBird.get());
+	cpShapeSetCollisionType(shapeBird->GetShape(), CollisionTypes::PLAYER);
+	registry.get<RigidBodyComponent>(player).SetPosition({ 600,200 });
 
 	entityPhysics = &registry.get<RigidBodyComponent>(player);
-
 	std::shared_ptr<Sound> jumpSound = ResourceManager::Instance().GetSound("assets/sounds/jump.wav");
 	SoundSystem::Instance().AddSoundEffect(jumpSound);
 

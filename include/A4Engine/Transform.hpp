@@ -33,6 +33,9 @@ class A4ENGINE_API Transform
 
 		void Translate(const Vector2f& translation);
 
+		Matrix3 GetTransformMatrix() const;
+
+
 		Vector2f TransformPoint(Vector2f position) const;
 		Vector2f TransformInversePoint(Vector2f position) const;
 

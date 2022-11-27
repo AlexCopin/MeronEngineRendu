@@ -61,6 +61,12 @@ void SDLppRenderer::RenderCopy(const SDLppTexture& texture, const SDL_Rect& src,
 	SDL_RenderCopy(m_renderer, texture.GetHandle(), &src, &dst);
 }
 
+
+void SDLppRenderer::DrawLines(const SDL_FPoint* points, std::size_t count)
+{
+	SDL_RenderDrawLinesF(m_renderer, points, static_cast<int>(count));
+}
+
 void SDLppRenderer::SetDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {
 	SDL_SetRenderDrawColor(m_renderer, r, g, b, a);

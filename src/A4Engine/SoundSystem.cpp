@@ -8,10 +8,10 @@ SoundSystem::SoundSystem()
 
 	s_instance = this;
 
-	device = alcOpenDevice(nullptr);
+	device = alcOpenDevice(NULL);
 	context = alcCreateContext(device, nullptr);
 	alcMakeContextCurrent(context);
-	alListener3f(AL_POSITION, 640.f / 100.f, 360.f / 100.f, 0.f);
+	alListener3f(AL_POSITION, 0, 0, 0);
 	alListenerf(AL_GAIN, 0.5f);
 }
 

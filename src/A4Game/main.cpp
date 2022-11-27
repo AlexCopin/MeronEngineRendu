@@ -1,4 +1,3 @@
-
 #include <A4Engine/AnimationSystem.hpp>
 #include <A4Engine/CameraComponent.hpp>
 #include <A4Engine/GraphicsComponent.hpp>
@@ -33,7 +32,6 @@
 #include "A4Game/PlayerController.hpp"
 #include "A4Game/Game.h"
 
-
 entt::entity CreateBox(entt::registry& registry);
 entt::entity CreateCamera(entt::registry& registry);
 entt::entity CreateHouse(entt::registry& registry);
@@ -45,7 +43,7 @@ int main()
 {
 	SDLpp sdl;
 
-	SDLppWindow window("Hardy Crow", 1280, 720);
+	SDLppWindow window("Hardy Crow", 1680, 1050);
 	SDLppRenderer renderer(window, "", SDL_RENDERER_PRESENTVSYNC);
 
 	ResourceManager resourceManager(renderer);
@@ -53,14 +51,14 @@ int main()
 
 	SDLppImGui imgui(window, renderer);
 	SoundSystem soundSystem;
-	GameInstance gameInstance;
 
 	// Si on initialise ImGui dans une DLL (ce que nous faisons avec la classe SDLppImGui) et l'utilisons dans un autre exécutable (DLL/.exe)
 	// la bibliothèque nous demande d'appeler ImGui::SetCurrentContext dans l'exécutable souhaitant utiliser ImGui, avec le contexte précédemment récupéré
 	// Ceci est parce qu'ImGui utilise des variables globales en interne qui ne sont pas partagées entre la .dll et l'exécutable (comme indiqué dans sa documentation)
 	ImGui::SetCurrentContext(imgui.GetContext());
-
 	entt::registry registry;
+	//Create PhysicsSystem
+	PhysicsSystem physicsSystem = PhysicsSystem(registry);
 
 	AnimationSystem animSystem(registry);
 	RenderSystem renderSystem(renderer, registry);
@@ -68,48 +66,23 @@ int main()
 
 	entt::entity cameraEntity = CreateCamera(registry);
 
-	entt::entity house = CreateHouse(registry);
-	registry.get<Transform>(house).SetPosition({ 750.f, 275.f });
-	registry.get<Transform>(house).SetScale({ 2.f, 2.f });
-
 	Uint64 lastUpdate = SDL_GetPerformanceCounter();
 
-	//Create PhysicsSystem
-	PhysicsSystem physicsSystem = PhysicsSystem(registry);
 
 	InputManager::Instance().BindKeyPressed(SDLK_SPACE, "Jump");
 
+	GameInstance gameInstance(registry);
 	//Player
 	std::shared_ptr<Spritesheet> spriteSheetPlayer = std::make_shared<Spritesheet>();
 	spriteSheetPlayer->AddAnimation("run", 8, 0.1f, Vector2i{ 0, 0 }, Vector2i{ 205, 205 });
-
-
-	Player birdPlayer(registry, spriteSheetPlayer);
-	
-	//Create Shape for runner
-	std::shared_ptr<Shape> shapeBird = std::make_shared<BoxShape>(128.f, 256.f);
-	registry.get<RigidBodyComponent>(birdPlayer.GetEntity()).AddShape(physicsSystem.GetSpace(), shapeBird.get());
-	registry.get<RigidBodyComponent>(birdPlayer.GetEntity()).SetPosition({ 100,100 });
-
-	//Create shape for box
-	entt::entity box = CreateBox(registry);
-	std::shared_ptr<Shape> shapeBox = std::make_shared<BoxShape>(256.f, 256.f);
-	registry.get<RigidBodyComponent>(box).AddShape(physicsSystem.GetSpace(), shapeBox.get());
-	registry.get<RigidBodyComponent>(box).SetPosition({ 400,400 });
-	
-	//Floor (not an entity -> Physique pas gérée par PhysicsSystem
-	cpBody* floorBody = cpBodyNewStatic();
-	cpShape* floorShape = cpSegmentShapeNew(floorBody, cpv(0.f, 720.f), cpv(10'000.f, 720.f), 0.f);
-	cpBody* roofBody = cpBodyNewStatic();
-	cpShape* roofShape = cpSegmentShapeNew(roofBody, cpv(0.f, 0.f), cpv(10'000.f, 0.f), 0.f);
-	cpSpaceAddShape(physicsSystem.GetSpace(), floorShape);
-	cpSpaceAddShape(physicsSystem.GetSpace(), roofShape);
+	//Preferred to make a class Player to empty the main and centralize data
+	Player birdPlayer(registry, spriteSheetPlayer);	
 
 	float physicsTimestep = 1.f / 50.f;
 	float physicsAccumulator = 0.f;
 
-
-	GameInstance::Instance().StartGame();	
+	//Function to start game
+	GameInstance::Instance().StartGame(registry, physicsSystem);
 
 	std::function<void(bool)> pause = [&](bool isDown) { if(!isDown)GameInstance::Instance().SetPaused(); };
 	InputManager::Instance().BindKeyPressed(SDLK_ESCAPE, "Escape");
@@ -152,9 +125,11 @@ int main()
 			velocitySystem.Update(deltaTime);
 			renderSystem.Update(deltaTime);
 			physicsSystem.FixedUpdate(deltaTime);
+			//physicsSystem.DebugDraw(renderer, registry.get<Transform>(cameraEntity).GetTransformMatrix().Invert());
 
 			birdPlayer.Update(deltaTime);
 
+			gameInstance.Update(deltaTime);
 
 			/*EntityInspector("Box", registry, box);
 			EntityInspector("Camera", registry, cameraEntity);

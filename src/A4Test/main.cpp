@@ -1,6 +1,6 @@
 //#include <AL/al.h>
 //#include "AL/alc.h"
-//#include "dr_wav.h"
+#include "dr_wav.h"
 #include <A4Engine/SDLpp.hpp>
 #include <A4Engine/SDLppWindow.hpp>
 #include <A4Engine/SDLppRenderer.hpp>
@@ -34,7 +34,7 @@ int main()
 
 	ResourceManager resourceManager(renderer);
 	SoundSystem soundSystem;
-
+	drwav wav;
 	std::shared_ptr<Sound> soundTest = ResourceManager::Instance().GetSound("assets/Tristram.wav");
 	soundTest->Play();
 	//std::shared_ptr<Sound> soundError = ResourceManager::Instance().GetSound("assets/Error.wav");

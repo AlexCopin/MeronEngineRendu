@@ -7,7 +7,7 @@ Sound::Sound(const char* path)
 	{
 		std::cout << "failed to load file + \'" << path << "\'" << std::endl;
 		invalid = true;
-	}else if(drwav_init_file(&wav, path, nullptr))
+	}else
 	{
 		m_samples = std::vector<std::int16_t>(wav.totalPCMFrameCount * wav.channels);
 		drwav_read_pcm_frames_s16(&wav, wav.totalPCMFrameCount, m_samples.data());
@@ -27,10 +27,10 @@ Sound::Sound(const char* path)
 
 Sound::Sound(Sound&& sound)  noexcept
 {
-	m_source = sound.m_source;
-	m_buffer = sound.m_buffer;
-	m_samples = sound.m_samples;
-	invalid = sound.invalid;
+	m_source = std::move(sound.m_source);
+	m_buffer = std::move(sound.m_buffer);
+	m_samples = std::move(sound.m_samples);
+	invalid = std::move(sound.invalid);
 }
 
 Sound::~Sound()
@@ -58,7 +58,7 @@ void Sound::Liberate()
 
 void Sound::SetLooping(bool isLooping)
 {
-	alSourcei(m_source, isLooping ? AL_LOOPING : AL_BUFFER, m_buffer);
+	alSourcei(m_source,  isLooping ? AL_LOOPING : AL_BUFFER, m_buffer);
 }
 
 void Sound::SetGain(float volume)

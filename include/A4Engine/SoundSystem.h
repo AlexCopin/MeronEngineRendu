@@ -31,7 +31,7 @@ private:
 	std::vector<std::shared_ptr<Sound>> m_soundsAmbiance;
 
 	float volumeEffects = 0.3f;
-	float volumeAmbiance = 0.05f;
+	float volumeAmbiance = 0.5f;
 
 	ALCdevice* device;
 	ALCcontext* context;

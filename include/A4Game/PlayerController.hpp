@@ -9,10 +9,11 @@ class Transform;
 class InputComponent;
 class RigidBodyComponent;
 class PlayerControlled;
+class GameInstance;
 
 struct MovementPlayer
 {
-	const float JUMPFORCE = -8000.f;
+	const float JUMPFORCE = -20000.f;
 
 	const float JUMPINTERVALVALUE = 0.5f;
 	float jumpinterval = 0.f;
@@ -20,6 +21,7 @@ struct MovementPlayer
 class Player 
 {
 public:
+	Player() = default;
 	Player(entt::registry& registry, std::shared_ptr<Spritesheet> spritesheet);
 
 	entt::entity& GetEntity();

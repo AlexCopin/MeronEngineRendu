@@ -39,6 +39,19 @@ void RigidBodyComponent::SetAngle(float angle)
 	cpBodySetAngle(m_body, angle);
 }
 
+void RigidBodyComponent::SetBodyStatic()
+{
+	cpBodySetType(m_body, cpBodyType::CP_BODY_TYPE_STATIC);
+}
+void RigidBodyComponent::SetBodyDynamic()
+{
+	cpBodySetType(m_body, cpBodyType::CP_BODY_TYPE_DYNAMIC);
+}
+void RigidBodyComponent::SetBodyKinematic()
+{
+	cpBodySetType(m_body, cpBodyType::CP_BODY_TYPE_KINEMATIC);
+}
+
 
 void RigidBodyComponent::SetMoment()
 {
@@ -70,8 +83,12 @@ void RigidBodyComponent::CleanShapeBank(cpSpace* space)
 {
 	for(int i = 0; i < m_shapeBank.size(); ++i)
 	{
-		cpSpaceRemoveShape(space, m_shapeBank[i]->GetShape());
-		cpShapeFree(m_shapeBank[i]->GetShape());
+		if (m_shapeBank[i] && m_shapeBank[i]->GetShape())
+		{
+			cpSpaceRemoveShape(space, m_shapeBank[i]->GetShape());
+			cpShapeFree(m_shapeBank[i]->GetShape());
+		}
 	}
-	cpSpaceRemoveBody(space, m_body);
+	if(cpBodyGetSpace(m_body))
+		cpSpaceRemoveBody(space, m_body);
 }

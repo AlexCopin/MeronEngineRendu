@@ -25,6 +25,9 @@ public:
 	void SetPosition(cpVect pos);
 	void SetAngle(float angle);
 
+	void SetBodyStatic();
+	void SetBodyDynamic();
+	void SetBodyKinematic();
 	void SetMoment();
 
 	void AddShape(cpSpace* space, Shape* shape);

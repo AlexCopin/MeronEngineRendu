@@ -6,12 +6,12 @@
 class A4ENGINE_API BoxShape : public Shape
 {
 public:
-	BoxShape(float width, float height);
+	BoxShape(int width, int height);
 	~BoxShape() = default;
 
 	float GetMoment(float mass) override;
 	cpShape* CreateShape(cpBody* body) override;
 private:
-	float m_width;
-	float m_height;
+	int m_width;
+	int m_height;
 };

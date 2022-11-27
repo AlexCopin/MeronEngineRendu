@@ -132,6 +132,14 @@ void Transform::Translate(const Vector2f& translation)
 	m_position += translation;
 }
 
+Matrix3 Transform::GetTransformMatrix() const
+{
+	Matrix3 transformMatrix = Matrix3::MatrixTranslation(m_position) * Matrix3::MatrixRotation(m_rotation) * Matrix3::MatrixScale(m_scale);
+	if (m_parent)
+		transformMatrix = transformMatrix * m_parent->GetTransformMatrix();
+
+	return transformMatrix;
+}
 Vector2f Transform::TransformPoint(Vector2f position) const
 {
 	// L'ordre des transformations s'appelle ici le SRT et est très courant

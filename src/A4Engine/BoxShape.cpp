@@ -1,6 +1,6 @@
 #include <A4Engine/BoxShape.hpp>
 
-BoxShape::BoxShape(float width, float height) :
+BoxShape::BoxShape(int width, int height) :
 	m_width(width),
 	m_height(height)
 {
