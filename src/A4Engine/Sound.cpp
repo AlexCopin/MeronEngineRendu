@@ -5,7 +5,7 @@ Sound::Sound(const char* path)
 	drwav wav;
 	if (!drwav_init_file(&wav, path, nullptr))
 	{
-		std::cout << "failed to load file" << std::endl;
+		std::cout << "failed to load file + \'" << path << "\'" << std::endl;
 		invalid = true;
 	}else if(drwav_init_file(&wav, path, nullptr))
 	{
@@ -13,7 +13,7 @@ Sound::Sound(const char* path)
 		drwav_read_pcm_frames_s16(&wav, wav.totalPCMFrameCount, m_samples.data());
 
 		alGenBuffers(1, &m_buffer);
-		alBufferData(m_buffer, (wav.channels == 2) ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, m_samples.data(), m_samples.size(), 44100);
+		alBufferData(m_buffer, (wav.channels == 2) ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, m_samples.data(), m_samples.size() * sizeof(std::int16_t), wav.sampleRate);
 
 		alGenSources(1, &m_source);
 		alSourcei(m_source, AL_BUFFER, m_buffer);
@@ -25,17 +25,16 @@ Sound::Sound(const char* path)
 	}
 }
 
-Sound::Sound(Sound&& sound) noexcept
+Sound::Sound(Sound&& sound)  noexcept
 {
-	m_buffer = sound.m_buffer;
 	m_source = sound.m_source;
+	m_buffer = sound.m_buffer;
 	m_samples = sound.m_samples;
-
 	invalid = sound.invalid;
 }
+
 Sound::~Sound()
 {
-	alDeleteBuffers(1, &m_buffer);
 }
 
 Sound Sound::LoadFromFile(const char* soundPath)
@@ -45,12 +44,26 @@ Sound Sound::LoadFromFile(const char* soundPath)
 
 void Sound::Play()
 {
-	if (IsValid()) {
+	if (IsValid())
 		alSourcePlay(m_source);
-	}
-	else {
+	else
 		std::cout << "Sound invalid" << std::endl;
-	}
+}
+
+void Sound::Liberate()
+{
+	alDeleteBuffers(1, &m_buffer);
+	alDeleteSources(1, &m_source);
+}
+
+void Sound::SetLooping(bool isLooping)
+{
+	alSourcei(m_source, isLooping ? AL_LOOPING : AL_BUFFER, m_buffer);
+}
+
+void Sound::SetGain(float volume)
+{
+	alSourcef(m_source, AL_GAIN, volume);
 }
 
 bool Sound::IsValid() const

@@ -13,15 +13,20 @@ class A4ENGINE_API Sound
 public:
 	Sound() = delete;
 	Sound(const Sound&) = default;
-	Sound(Sound&& sound) noexcept;
+	Sound(Sound&& sound)  noexcept;
 	~Sound();
 	//Only .wav files
 	static Sound LoadFromFile(const char* soundPath);
 
 	void Play();
 
+	void Liberate();
+
 	Sound& operator=(const Sound&) = delete;
 	Sound& operator=(Sound&&) = default;
+
+	void SetLooping(bool isLooping);
+	void SetGain(float volume);
 
 	bool IsValid() const;
 private:

@@ -147,7 +147,10 @@ void ResourceManager::Purge()
 		if (it->second.use_count() > 1)
 			++it;
 		else
+		{
+			it->second->Liberate();
 			it = m_sounds.erase(it);
+		}
 	}
 
 }
@@ -155,7 +158,7 @@ void ResourceManager::Purge()
 ResourceManager& ResourceManager::Instance()
 {
 	if (s_instance == nullptr)
-		throw std::runtime_error("ResourceManager hasn't been instantied");
+		throw std::runtime_error("ResourceManager hasn't been instantiated");
 
 	return *s_instance; 
 }
