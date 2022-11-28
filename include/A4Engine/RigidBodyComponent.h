@@ -5,6 +5,7 @@
 #include <A4Engine/Shape.h>
 #include <memory>
 #include <vector>
+#include <A4Engine/Vector2.hpp>
 
 class A4ENGINE_API RigidBodyComponent {
 public:
@@ -22,13 +23,16 @@ public:
 
 	cpVect GetPosition();
 	float GetAngle();
-	void SetPosition(cpVect pos);
+	void SetPosition(Vector2f pos);
+	void SetVelocity(Vector2f velocity);
+	Vector2f GetVelocity();
 	void SetAngle(float angle);
 
 	void SetBodyStatic();
 	void SetBodyDynamic();
 	void SetBodyKinematic();
 	void SetMoment();
+	void Impulse(Vector2f direction);
 
 	void AddShape(cpSpace* space, Shape* shape);
 	void RemoveShape(Shape* shape);

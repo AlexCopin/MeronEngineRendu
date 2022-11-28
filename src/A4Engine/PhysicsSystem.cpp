@@ -15,6 +15,7 @@ PhysicsSystem::PhysicsSystem(entt::registry& registry) :
 	m_space = cpSpaceNew();
 	SetGravity(981.f);
 	SetDamping(0.5f);
+	m_timeStep = 0.01;
 }
 
 PhysicsSystem::~PhysicsSystem()
@@ -171,9 +172,16 @@ void PhysicsSystem::SetDamping(float value)
 	cpSpaceSetDamping(m_space, value);
 }
 
-void PhysicsSystem::AddHandler(cpCollisionHandler handler)
+void PhysicsSystem::AddHandler(cpCollisionType type1, cpCollisionType type2, const cpCollisionBeginFunc& func)
 {
+	cpCollisionHandler* handler = cpSpaceAddCollisionHandler(m_space, type1, type2);
+	handler->beginFunc = func;
 	m_handlers.emplace_back(handler);
+}
+
+void PhysicsSystem::AddShape(Shape* shape)
+{
+	cpSpaceAddShape(m_space, shape->GetShape());
 }
 
 void PhysicsSystem::Step(float deltaTime)

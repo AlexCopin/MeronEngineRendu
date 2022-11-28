@@ -114,12 +114,7 @@ int main()
 		renderer.Clear();
 		if (!GameInstance::Instance().IsPaused())
 		{
-			physicsAccumulator += deltaTime;
-			while (physicsAccumulator >= physicsTimestep)
-			{
-				cpSpaceStep(physicsSystem.GetSpace(), physicsTimestep);
-				physicsAccumulator -= physicsTimestep;
-			}
+			physicsSystem.Step(deltaTime);
 
 			animSystem.Update(deltaTime);
 			velocitySystem.Update(deltaTime);

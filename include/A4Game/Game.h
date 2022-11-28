@@ -8,19 +8,13 @@
 
 class PhysicsSystem;
 
-enum CollisionTypes
-{
-	PLAYER,
-	KILLER,
-	HANDRESPAWN
-};
 struct HandsDuo
 {
 	float speed = 250.f;
 	const float ACCELERATION = 100.f;
-	const double SPAWN_X = 2000;
+	const float SPAWN_X = 2000;
 	const int BETWEEN_HANDS = 1000;
-	const double SPAWN_RANDOM_Y = 300;
+	const float SPAWN_RANDOM_Y = 300;
 	const Vector2i sizeHands = Vector2i(400, 600);
 
 	HandsDuo() = default;

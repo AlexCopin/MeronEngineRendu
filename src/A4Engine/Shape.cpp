@@ -10,6 +10,11 @@ cpShape* Shape::GetShape()
 	return m_shape;
 }
 
+void Shape::SetCollisionType(cpCollisionType type)
+{
+	cpShapeSetCollisionType(GetShape(), type);
+}
+
 cpShape* Shape::CreateShape(cpBody* body)
 {
 	return nullptr;

@@ -6,6 +6,7 @@
 #include <A4Engine/RigidBodyComponent.h>
 #include <A4Engine/SDLppRenderer.hpp>
 #include <A4Engine/Matrix3.h>
+#include <A4Engine/Shape.h>
 #include <vector>
 
 class A4ENGINE_API PhysicsSystem {
@@ -29,8 +30,9 @@ public:
 	void SetGravity(float value);
 	void SetDamping(float value);
 
-	void AddHandler(cpCollisionHandler handler);
+	void AddHandler(cpCollisionType type1, cpCollisionType type2, const cpCollisionBeginFunc& func);
 
+	void AddShape(Shape* shape);
 
 	void Step(float deltaTime);
 
@@ -43,7 +45,7 @@ private:
 	cpSpace* m_space;
 	entt::registry& m_registry;
 
-	std::vector<cpCollisionHandler> m_handlers;
+	std::vector<cpCollisionHandler*> m_handlers;
 
 	float m_timeStep;
 	float m_timeAccumulator;

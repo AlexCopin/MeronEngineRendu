@@ -8,6 +8,7 @@
 #include <A4Engine/Transform.hpp>
 #include <A4Engine/RigidBodyComponent.h>
 #include <A4Engine/VelocityComponent.hpp>
+#include <A4Engine/SegmentShape.hpp>
 #include <A4Engine/BoxShape.hpp>
 #include <A4Engine/PhysicsSystem.h>
 #include <imgui.h>
@@ -36,11 +37,8 @@ GameInstance::~GameInstance()
 void GameInstance::StartGame(entt::registry& registry, PhysicsSystem& physicSystem)
 {
 	//SET COLLISION TYPES
-	cpCollisionHandler* handler = cpSpaceAddCollisionHandler(physicSystem.GetSpace(), CollisionTypes::PLAYER, CollisionTypes::KILLER);
-	handler->beginFunc = GameInstance::RestartGameOnImpact;
-	cpCollisionHandler* handler2 = cpSpaceAddCollisionHandler(physicSystem.GetSpace(), CollisionTypes::KILLER, CollisionTypes::HANDRESPAWN);
-	handler2->beginFunc = GameInstance::MoveBackHandOnImpact;
-
+	physicSystem.AddHandler(CollisionTypes::PLAYER, CollisionTypes::KILLER, GameInstance::RestartGameOnImpact);
+	physicSystem.AddHandler(CollisionTypes::KILLER, CollisionTypes::HANDRESPAWN, GameInstance::MoveBackHandOnImpact);
 
 	//AMBIENT SOUNDS
 	auto soundAmbient01 = ResourceManager::Instance().GetSound("assets/sounds/ambientjungle.wav");
@@ -52,20 +50,21 @@ void GameInstance::StartGame(entt::registry& registry, PhysicsSystem& physicSyst
 	soundAmbient01->Play();
 	mainTheme->Play();
 
-
-	//LIMITS (not an entity -> Physique pas gérée par PhysicsSystem
-	cpBody* floorBody = cpBodyNewStatic();
-	cpShape* floorShape = cpSegmentShapeNew(floorBody, cpv(0.f, 1050.f), cpv(10'000.f, 1050.f), 0.f);
-	cpBody* roofBody = cpBodyNewStatic();
-	cpShape* roofShape = cpSegmentShapeNew(roofBody, cpv(0.f, 1050.f), cpv(10'000.f, 0.f), 0.f);
-	cpBody* handEnd = cpBodyNewStatic();
-	cpShape* handEndShape = cpSegmentShapeNew(handEnd, cpv(-hands.sizeHands.x, 0), cpv(0, 10000.f), 0.f);
-	cpShapeSetCollisionType(roofShape, PLAYER);
-	cpShapeSetCollisionType(floorShape, KILLER); 
-	cpShapeSetCollisionType(handEndShape, HANDRESPAWN);
-	cpSpaceAddShape(physicSystem.GetSpace(), floorShape);
-	cpSpaceAddShape(physicSystem.GetSpace(), roofShape);
-	cpSpaceAddShape(physicSystem.GetSpace(), handEndShape);
+	RigidBodyComponent* floorBody = new RigidBodyComponent(0.f);
+	floorBody->SetBodyStatic();
+	RigidBodyComponent* roofBody = new RigidBodyComponent(0.f);
+	roofBody->SetBodyStatic();
+	RigidBodyComponent* handEnd = new RigidBodyComponent(0.f);
+	handEnd->SetBodyStatic();
+	SegmentShape* floorShape = new SegmentShape({ 0.f, 1050.f }, { 10'000.f, 1050.f }, 0.f, floorBody);
+	SegmentShape* roofShape = new SegmentShape({ 0.f, 1050.f }, { 10'000.f, 0.f }, 0.f, roofBody);
+	SegmentShape* handEndShape = new SegmentShape({ (float)-hands.sizeHands.x, 0.f }, { 0, 10000.f }, 0.f, handEnd);
+	roofShape->SetCollisionType(CollisionTypes::PLAYER);
+	floorShape->SetCollisionType(CollisionTypes::KILLER);
+	handEndShape->SetCollisionType(CollisionTypes::HANDRESPAWN);
+	physicSystem.AddShape(floorShape);
+	physicSystem.AddShape(roofShape);
+	physicSystem.AddShape(handEndShape);
 
 	//CREATE ENEMIES
 	CreateHands(registry, physicSystem);
@@ -99,8 +98,7 @@ void GameInstance::CreateHands(entt::registry& registry, PhysicsSystem& physicSy
 	handPhysics.AddShape(physicSystem.GetSpace(), shapeHand.get());
 	handPhysics.SetPosition({ hands.SPAWN_X, randomY + hands.BETWEEN_HANDS });
 	handPhysics.SetBodyKinematic();
-	cpBodySetVelocity(handPhysics.GetBody(), { -hands.speed, 0 });
-
+	handPhysics.SetVelocity({ -hands.speed, 0 });
 
 	//INSTANTIATE SECOND HAND
 	auto hand2 = std::make_shared<Sprite>(ResourceManager::Instance().GetTexture("assets/sprites/Hand.png"));
@@ -117,10 +115,10 @@ void GameInstance::CreateHands(entt::registry& registry, PhysicsSystem& physicSy
 	handPhysics2.SetPosition({ hands.SPAWN_X , randomY });
 	handPhysics2.SetBodyKinematic();
 	handPhysics2.SetAngle(-3.14f);
-	cpBodySetVelocity(handPhysics2.GetBody(), { -hands.speed, 0 });
+	handPhysics2.SetVelocity({ -hands.speed, 0 });
 
-	cpShapeSetCollisionType(shapeHand->GetShape(), CollisionTypes::KILLER);
-	cpShapeSetCollisionType(shapeHand2->GetShape(), CollisionTypes::KILLER);
+	shapeHand->SetCollisionType(CollisionTypes::KILLER);
+	shapeHand2->SetCollisionType(CollisionTypes::KILLER);
 
 	hands.handDown = handEnt;
 	hands.handUp = handEnt2;
@@ -133,6 +131,10 @@ void GameInstance::RestartGame()
 
 cpBool GameInstance::RestartGameOnImpact(cpArbiter* arb, cpSpace* space, void* data)
 {
+	/*//TO GET SHAPES IN COLLISION
+	cpShape* shape;
+	cpShape* shape02;
+	cpArbiterGetShapes(arb, &shape, &shape02);*/
 	Instance().RestartGame();
 	return cpTrue;
 }
@@ -140,19 +142,20 @@ cpBool GameInstance::RestartGameOnImpact(cpArbiter* arb, cpSpace* space, void* d
 void GameInstance::MoveBackHand()
 {
 	hands.speed += hands.ACCELERATION;
-	double randomY = std::rand() / ((RAND_MAX + 1u) / hands.SPAWN_RANDOM_Y);
+	float randomY = std::rand() / ((RAND_MAX + 1u) / hands.SPAWN_RANDOM_Y);
 	auto& hand01Body = m_registry.get<RigidBodyComponent>(hands.handDown);
 	hand01Body.SetPosition({ hands.SPAWN_X, randomY + hands.BETWEEN_HANDS });
-	cpBodySetVelocity(hand01Body.GetBody(), { -hands.speed, 0 });
+	hand01Body.SetVelocity({ -hands.speed, 0 });
 	auto& hand02Body = m_registry.get<RigidBodyComponent>(hands.handUp);
 	hand02Body.SetPosition({ hands.SPAWN_X, randomY });
-	cpBodySetVelocity(hand02Body.GetBody(), { -hands.speed, 0 });
+	hand02Body.SetVelocity({ -hands.speed, 0 });
 }
+
 
 cpBool GameInstance::MoveBackHandOnImpact(cpArbiter* arb, cpSpace* space, void* data)
 {
 	Instance().MoveBackHand();
-	return cpBool();
+	return cpTrue;
 }
 
 void GameInstance::Update(float deltaTime)

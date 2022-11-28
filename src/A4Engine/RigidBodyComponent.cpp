@@ -29,11 +29,20 @@ float RigidBodyComponent::GetAngle()
 	return cpBodyGetAngle(m_body);
 }
 
-void RigidBodyComponent::SetPosition(cpVect pos)
+void RigidBodyComponent::SetPosition(Vector2f pos)
 {
-	cpBodySetPosition(m_body, pos);
+	cpBodySetPosition(m_body, { pos.x, pos.y });
 }
 
+void RigidBodyComponent::SetVelocity(Vector2f velocity)
+{
+	cpBodySetVelocity(GetBody(), { velocity.x, velocity.y });
+}
+
+Vector2f RigidBodyComponent::GetVelocity()
+{
+	return Vector2f(cpBodyGetVelocity(m_body).x, cpBodyGetVelocity(m_body).y);
+}
 void RigidBodyComponent::SetAngle(float angle)
 {
 	cpBodySetAngle(m_body, angle);
@@ -61,6 +70,11 @@ void RigidBodyComponent::SetMoment()
 	}
 
 	cpBodySetMoment(m_body, tmp);
+}
+
+void RigidBodyComponent::Impulse(Vector2f direction)
+{
+	cpBodyApplyImpulseAtWorldPoint(m_body, { direction.x, direction.y }, cpBodyGetPosition(m_body));
 }
 
 void RigidBodyComponent::AddShape(cpSpace* space, Shape* shape)

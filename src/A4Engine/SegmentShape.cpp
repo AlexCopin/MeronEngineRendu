@@ -1,10 +1,12 @@
 #include <A4Engine/SegmentShape.hpp>
+#include <A4Engine/RigidBodyComponent.h>
 
-SegmentShape::SegmentShape(cpVect a, cpVect b, float radius) :
+SegmentShape::SegmentShape(cpVect a, cpVect b, float radius, RigidBodyComponent* body) :
 	m_a(a),
 	m_b(b),
 	m_radius(radius)
 {
+	m_shape = cpSegmentShapeNew(body->GetBody(), m_a, m_b, m_radius);
 }
 
 cpShape* SegmentShape::CreateShape(cpBody* body)

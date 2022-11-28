@@ -42,10 +42,10 @@ entt::entity Player::CreatePlayer(std::shared_ptr<Spritesheet> spritesheet)
 	//Create Shape for BIRD
 	std::shared_ptr<Shape> shapeBird = std::make_shared<BoxShape>(128, 128);
 	registry.get<RigidBodyComponent>(player).AddShape(PhysicsSystem::Instance().GetSpace(), shapeBird.get());
-	cpShapeSetCollisionType(shapeBird->GetShape(), CollisionTypes::PLAYER);
+	shapeBird->SetCollisionType(CollisionTypes::PLAYER);
 	registry.get<RigidBodyComponent>(player).SetPosition({ 600,200 });
-
 	entityPhysics = &registry.get<RigidBodyComponent>(player);
+
 	std::shared_ptr<Sound> jumpSound = ResourceManager::Instance().GetSound("assets/sounds/jump.wav");
 	SoundSystem::Instance().AddSoundEffect(jumpSound);
 
@@ -61,9 +61,9 @@ void Player::Update(float deltaTime)
 	if (movementPlayer.jumpinterval <= 0 && InputManager::Instance().IsActive("Jump"))
 	{
 		ResourceManager::Instance().GetSound("assets/sounds/jump.wav")->Play();
-		cpBodyApplyImpulseAtWorldPoint(entityPhysics->GetBody(), cpv(0.f, movementPlayer.JUMPFORCE), cpBodyGetPosition(entityPhysics->GetBody()));
+		entityPhysics->Impulse({ 0.f, movementPlayer.JUMPFORCE });
 		movementPlayer.jumpinterval = movementPlayer.JUMPINTERVALVALUE;
 	}
-	float velY = cpBodyGetVelocity(entityPhysics->GetBody()).y;
-	cpBodySetVelocity(entityPhysics->GetBody(), cpv(velocity.x, velY));
+	float velY = entityPhysics->GetVelocity().y;
+	entityPhysics->SetVelocity({ velocity.x, velY });
 }
